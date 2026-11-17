@@ -1,1 +1,121 @@
-<h1>PaperFinder is coming soon</h1>
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>PaperFinder</title>
+    <meta name="description" content="Find research papers to read for free.">
+    <link rel="icon" href="static/favicon.ico" type="image/x-icon">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700&display=swap">
+    <link rel="stylesheet" href="static/style.css">
+    <script src="static/app.js" defer></script>
+</head>
+
+<body>
+    <a class="skip-link" href="#results">Skip to results</a>
+
+    <header class="top">
+        <a class="brand" href="./"><img src="static/android-chrome-512x512.png" alt="" width="36"
+                height="36">PaperFinder</a>
+        <a class="list-link" href="#reading-list">Reading list (<span id="list-count">0</span>)</a>
+    </header>
+
+    <div class="layout">
+        <main>
+            <section class="intro">
+                <h1>Find research you can read for free.</h1>
+                <p>Search millions of papers from OpenAlex. Papers that are free to read come with direct link, so you
+                    skip the paywall.</p>
+            </section>
+
+            <form id="search_from" class="search" role="search" novalidate>
+                <label for="q" class="visually-hidden">Search papers</label>
+                <div class="search-row">
+                    <input id="q" name="q" type="search" placeholder="Try: mobile money Rwanda" autocomplete="off"
+                        maxlength="200">
+                    <button type="submit">Search</button>
+                </div>
+
+                <fieldset class="filters">
+                    <legend class="visually-hidden">Filters</legend>
+                    <label class="check">
+                        <input type="checkbox" id="free" checked>
+                        Free to read only
+                    </label>
+                    <label>From
+                        <input id="from" type="number" min="1900" placeholder="1900" inputmode="numeric">
+                    </label>
+                    <label>To
+                        <input id="to" type="number" min="1900" placeholder="Now" inputmode="numeric">
+                    </label>
+                    <label>Type
+                        <select id="type">
+                            <option value="any">Any</option>
+                            <option value="article">Articles</option>
+                            <option value="review">Reviews</option>
+                            <option value="book">Books and chapters</option>
+                            <option value="preprint">Preprints</option>
+                            <option value="dissertation">Theses</option>
+                        </select>
+                    </label>
+                    <label>Sort by
+                        <select id="sort">
+                            <option value="relevance">Best match</option>
+                            <option value="citations">Most cited</option>
+                            <option value="newest">Newest</option>
+                        </select>
+                    </label>
+                </fieldset>
+            </form>
+
+            <p id="status" class="status" role="status" aria-live="polite" tabindex="-1"></p>
+            <ol id="results" class="results"></ol>
+
+            <nav id="pager" class="pager" aria-label="Result pages" hidden>
+                <button id="prev" type="button">Previous page</button>
+                <span id="page-info"></span>
+                <button id="next" type="button">Next page</button>
+            </nav>
+        </main>
+
+        <aside id="reading-list" class="reading-list" aria-labelledby="list-title">
+            <h2 id="list-title">Reading list</h2>
+            <p id="list-empty" class="list-empty">Save papers here to read later. The list stays in this browser.</p>
+            <ul id="list-items" class="list-items"></ul>
+            <div id="list-actions" class="list-actions" hidden>
+                <button id="download-list" type="button">Download list</button>
+                <button id="clear-list" type="button" class="quiet">Clear list</button>
+            </div>
+        </aside>
+    </div>
+
+    <footer class="foot">
+        <p>Paper data from <a href="https://openalex.org">OpenAlex</a>, an open index of research run by the nonprofit
+            OurResearch</p>
+        <p id="served-by"></p>
+    </footer>
+
+    <template id="paper-template">
+        <li class="paper">
+            <div class="paper-body">
+                <h3 class="paper-title"><a target="_blank" rel="noopener noreferrer"></a></h3>
+                <p class="paper-authors"></p>
+                <p class="paper-where"></p>
+                <p class="paper-topic"></p>
+                <div class="paper-actions">
+                    <a class="read-free" target="_blank" rel="noopener noreferrer"></a>
+                    <span class="not-free">Not free to read</span>
+                    <button type="button" class="toggle-summary" aria-expanded="false">Show summary</button>
+                    <button type="button" class="save" aria-pressed="false">Save</button>
+                </div>
+                <p class="summary" hidden></p>
+            </div>
+            <p class="citations"><strong class="cite-count"></strong> <span class="cite-label"></span></p>
+        </li>
+    </template>
+</body>
+
+</html>
