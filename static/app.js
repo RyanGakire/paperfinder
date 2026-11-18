@@ -26,7 +26,7 @@
 
     var LIST_KEY = "paperfinder.readingList";
     var thisYear = new Date().getFullYear();
-    var currrentPage = 1;
+    var currentPage = 1;
     var totalPages = 1;
     var activeRequest = null;
 
@@ -34,6 +34,99 @@
     toInput.max = String(thisYear);
 
     /* ------------- Reading list (saved in this browser) -------------- */
+    function loadlist() {
+        try {
+            var saved = JSON.parse(localStorage.getItem(LIST_KEY) || "[]");
+            return Array.isArray(saved) ? saved : [];
+        } catch (error) {
+            return [];
+        }
+    }
+
+
+    function saveList() {
+        try {
+            localStorage.setItem(LIST_KEY, JSON.stringify(readingList));
+        } catch (error) {
+            /* Storage can be blocked (private mode). The list still works until the page is closes. */
+        }
+    }
+
+    var readingList = loadlist();
+
+    function isSaved(id) {
+        return readingList.some(function (item) { return item.id === id; });
+    }
+
+
+    function toggleSaved(paper) {
+        if (isSaved(paper.id)) {
+            readingList = readingList.filter(function (item) { return item.id !== paper.id; });
+        } else {
+            readingList.push({
+                id: paper.id,
+                title: paper.title,
+                authors: paper.authors,
+                more_authors: paper.more_authors,
+                year: paper.year,
+                venue: paper.venue,
+                url: paper.free_url || paper.link
+            });
+        }
+        saveList();
+        renderList();
+        syncSaveButtons();
+    }
+
+
+    function renderList() {
+        var listEl = byId("list-items");
+        listEl.textContent = "";
+        readingList.forEach(function (item) {
+            var li = document.createElement("li");
+
+            var link = document.createElement("a");
+            link.href = item.url || "#";
+            link.target = "_blank";
+            link.rel = "noopener noreferrer";
+            link.textContent = item.title;
+
+            var details = document.createElement("p");
+            details.textContent = authorText(item.authors, item.more_authors) + (item.year ? ", " + item.year : "");
+
+            var remove = document.createElement("button");
+            remove.type = "button";
+            remove.textContent = "Remove";
+            remove.setAttribute("aria-label", "Remove " + item.title);
+            remove.addEventListener("click", function () { toggleSaved(item); });
+
+            li.append(link, details, remove);
+            listEl.append(li);
+        });
+
+        byId("list-count").textContent = String(readingList.length);
+        byId("list-empty").hidden = readingList.length > 0;
+        byId("list-actions").hidden = readingList.length === 0;
+    }
+
+
+    function downloadList() {
+        var lines = ["Reading list from PaperFinder (" + new Date().toLocaleDateString() + ")", ""];
+        readingList.forEach(function (item, index) {
+            lines.push((index + 1) + ". " + authorText(item.authors, item.more_authors) + " (" + (item.year || "n.d.") + "). " + item.title + "." + (item.venue ? " " + item.venue + "." : ""));
+            if (item.url) { lines.push("  " + item.url); }
+            lines.push("");
+        });
+        var file = new Blob([lines.join("\n")], { type: "text/plain" });
+        var link = document.createElement("a");
+        link.href = URL.createObjectURL(file);
+        link.download = "reading-list.txt";
+        document.body.append(link);
+        link.click();
+        link.remove();
+        setTimeout(function () { URL.revokeObjectURL(link.href); }, 1000);
+    }
+
 
     /* ------------- Helpers ---------------- */
     function authorText(authors, more) {
@@ -43,10 +136,12 @@
         return text;
     }
 
+
     function setStatus(message, isError) {
         statusEl.textContent = message;
         statusEl.classList.toggle("error", Boolean(isError));
     }
+
 
     /* Wrap the searched words in <mark>, using DOM nodes only. */
     function highlight(text, query) {
@@ -88,6 +183,7 @@
         };
     }
 
+
     function toQueryString(settings) {
         var params = new URLSearchParams();
         Object.keys(settings).forEach(function (key) {
@@ -95,6 +191,7 @@
         });
         return params.toString();
     }
+
 
     function checkSettings(settings) {
         if (settings.q.length < 2) { return "Type at least 2 characters to search."; }
@@ -105,6 +202,7 @@
         }
         return null;
     }
+
 
     function runSearch(page, moveFocus) {
         var settings = readSettings(page);
@@ -135,7 +233,7 @@
                 });
             })
             .then(function (body) {
-                currrentPage = body.page;
+                currentPage = body.page;
                 totalPages = body.pages;
                 showServer(body.served_by);
                 renderResults(body, settings);
@@ -230,9 +328,26 @@
             summary.remove();
         }
 
+        var save = item.querySelector(".save");
+        save.addEventListener("click", function () { toggleSaved(paper); });
+        setSaveButton(save, isSaved(paper.id));
+
         item.querySelector(".cite-count").textContent = paper.citations.toLocaleString();
         item.querySelector(".cite-label").textContent = paper.citations === 1 ? "citation" : "citations";
         return item;
+    }
+
+
+    function setSaveButton(button, saved) {
+        button.setAttribute("aria-pressed", String(saved));
+        button.textContent = saved ? "Saved" : "Save";
+    }
+
+
+    function syncSaveButtons() {
+        resultsEl.querySelectorAll(".paper").forEach(function (item) {
+            setSaveButton(item.querySelector(".save"), isSaved(item.dataset.id));
+        });
     }
 
 
@@ -246,7 +361,29 @@
         runSearch(1, false);
     });
 
+    [freeInput, typeInput, sortInput, fromInput, toInput].forEach(function (input) {
+        input.addEventListener("change", function () {
+            if (queryInput.value.trim().length >= 2) { runSearch(1, false); }
+        });
+    });
+
+    prevButton.addEventListener("click", function () {
+        if (currentPage > 1) { runSearch(currentPage - 1, true); }
+    });
+    nextButton.addEventListener("click", function () {
+        if (currentPage < totalPages) { runSearch(currentPage + 1, true); }
+    });
+
+    byId("download-list").addEventListener("click", downloadList);
+    byId("clear-list").addEventListener("click", function () {
+        readingList = [];
+        saveList();
+        renderList();
+        syncSaveButtons();
+    });
     /* ------------- Start ------------------ */
+    renderList();
+
     /* Restore a search from the address bar, so links and refreshes work. */
     var start = new URLSearchParams(location.search);
     if (start.get("q")) {
