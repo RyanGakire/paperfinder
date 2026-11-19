@@ -1,4 +1,4 @@
-# PaperFinder
+# <img src="static/android-chrome-512x512.png" alt="" width="40"> PaperFinder
 
 PaperFinder helps students find research papers they can read for free.
 
