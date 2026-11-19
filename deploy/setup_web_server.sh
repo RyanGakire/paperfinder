@@ -19,7 +19,7 @@ else
 fi
 
 echo "==> Installing Python packages"
-python3 -m env "$APP_DIR/venv"
+python3 -m venv "$APP_DIR/venv"
 "$APP_DIR/venv/bin/pip" install --upgrade pip
 "$APP_DIR/venv/bin/pip" install -r "$APP_DIR/requirements.txt"
 
