@@ -38,7 +38,7 @@ systemctl enable paperfinder
 systemctl restart paperfinder
 
 echo "==> Connecting Nginx to the app at /papers/"
-cp "$APP_DIR/deploy/nginx-paperfinder.conf" /etc/nginx/snippets/paperfinder/conf
+cp "$APP_DIR/deploy/nginx-paperfinder.conf" /etc/nginx/snippets/paperfinder.conf
 if ! grep -q "snippets/paperfinder.conf" "$NGINX_SITE"; then
     sed -i '0,/server_name _;/s//server_name _;\n\n     include snippets\/paperfinder.conf;/' "$NGINX_SITE"
 fi
