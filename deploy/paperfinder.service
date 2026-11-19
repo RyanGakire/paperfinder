@@ -7,7 +7,7 @@ User=www-data
 Group=www-data
 WorkingDirectory=/opt/paperfinder
 EnvironmentFile=-/opt/paperfinder/.env
-ExecStart=/opt/paperfinder/venv/bin/gunicorn --workers 2 --bind 127.0.0.1:5000 --acces-logfile - app:app
+ExecStart=/opt/paperfinder/venv/bin/gunicorn --workers 2 --bind 127.0.0.1:5000 --access-logfile - app:app
 Restart=always
 RestartSec=3
 
